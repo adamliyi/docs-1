@@ -54,6 +54,8 @@ OpenBMC's linux is at a separated repo https://github.com/openbmc/linux
 
 Refer to `arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts`, add machine's device tree `aspeed-bmc-opp-m1.dts`
 
+Refer to `Documentation/devicetree` for details on GPIO, leds.
+
 ### Device driver
 
 If the machine uses new drivers, the device driver shall be contributed to `linux` repo.
@@ -137,35 +139,72 @@ Tips: Use `--to=openbmc@lists.ozlabs.org --subject-prefix="PATCH linux dev-4.7"`
 ### Feature list
 OpenBMC contains several features implemented in different repos.
 
-TODOs:
-
 #### IPMI
 
-#### Chassis cotrol
+OpenBMC's IPMI 2.0 support is work in progress. Refer to: https://github.com/openbmc/phosphor-net-ipmid
+for IPMI network interface.
+
+The IPMI stack implementation is: https://github.com/openbmc/phosphor-host-ipmid
+Also OpenBMC support IPMI communication with Hostboot via BT interface, which is alos implemented in `phosphor-host-ipmid`
+Here are some example:
+* https://github.com/openbmc/phosphor-host-ipmid/blob/master/apphandler.h
+* https://github.com/openbmc/phosphor-host-ipmid/blob/master/chassishandler.h
+
+IPMI command can be issued in OpenBMC using `ipmitool -I dbus`.
+
+#### Chassis control
+
+Dbus interface: `org.openbmc.control.Chassis`
 
 #### LAN function
 
+```
+busctl call org.openbmc.NetworkManager /org/openbmc/NetworkManager/Interface org.openbmc.NetworkManager SetAddress4 ssss eth0 9.3.29.119 255.255.255.0 9.3.29.1
+fw_setenv ethaddr 00:01:6C:80:00:2C
+```
+
 #### Sensors reading
+
+Dbus interface: `org.openbmc.Sensors`
 
 #### FRU
 
+FRUs are either managed by Hostboot, or managed by BMC.
+Dbus inventory objects: `org.openbmc.Inventory`
+
 #### Watchdog
+
+Boot Watchdog: `org.openbmc.watchdog.Host`
 
 #### Network
 
 #### Event log
 
+Support SEL IPMI command from Hostboot. `org.openbmc.records.events`
+
 #### FAN control
+
+`org.openbmc.control.Fans`
 
 #### SSH
 
+Works ok.
+
 #### SOL
+
+obmc-console-server
 
 #### KVM
 
+Not supported.
+
 #### Web-GUI
 
+Port *3000* is used for debugging Dbus interface. Should be disabled in product.
+
 #### REST
+
+https://github.com/openbmc/docs/blob/master/rest-api.md
 
 #### Firmware update
 
@@ -173,7 +212,8 @@ BMC firmware can be updated via REST API. See [code-update.md](code-update.md) f
 The code locates in `skeleton`'s `pyflashbmc/bmc_update.py`
 
 ### Add OEM IPMI command
-TODO
+
+https://github.com/openbmc/openpower-host-ipmi-oem
 
 ### Devtool
 `devtool` is a development tool provided by Yocto to modify source files that are external to OpenBMC.
@@ -215,6 +255,16 @@ If `obmc-op-control-host` is on local repo generated from `devtool`, the built b
 
 
 #### SDK build
-TODO
+
+`bitbake -c populate_sdk obmc-phosphor-image`
+
+`./tmp/deploy/sdk/openbmc-phosphor-glibc-x86_64-obmc-phosphor-image-armv5e-toolchain-1.8+snapshot.sh`
+
+Follow the prompts.  Defaults may enable something like this...
+
+`. /opt/openbmc-phosphor/1.8+snapshot/environment-setup-armv5e-openbmc-linux-gnueabi`
+
+Now all your environment variables will be setup to cross compile.
+
 
 Note: Maybe "Devtool" and "Compile a single module" sections can be moved to [cheatsheet.md](cheatsheet.md)?
